@@ -14,34 +14,47 @@ AudioConnection          patchCord2(amp1, 0, usb1, 0);
 // GUItool: end automatically generated code
 // put function declarations here:
 
+int led_pin{13};
 
-static uint32_t next;
+float midiToFreq(byte note){
+  return 440.0 * powf(2.0, (float)(note-69)*0.08333333);
+}
+
+void myNoteOn(byte channel, byte note, byte velocity){
+  // AudioNoInterrupts();
+  sine1.frequency(midiToFreq(note));
+  sine1.amplitude(1.0);
+  // AudioInterrupts();
+  digitalWrite(led_pin, HIGH);
+}
+
+void myNoteOff(byte channel, byte note, byte velocity){
+  sine1.amplitude(0.0);
+
+  digitalWrite(led_pin, LOW);
+}
+
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
+  pinMode(led_pin, OUTPUT);
+
   AudioMemory(15);
 
-  next = millis() + 1000;
-
-  AudioNoInterrupts();
-
-  sine1.amplitude(0.5);
-  sine1.frequency(440.0);
-
+  //AudioNoInterrupts();
   amp1.gain(1.0);
-  AudioInterrupts();
+  //AudioInterrupts();
+
+  usbMIDI.setHandleNoteOn(myNoteOn);
+  usbMIDI.setHandleNoteOff(myNoteOff);
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly
-  delay(1000);
-  sine1.amplitude(0.0);
-  delay(1000);
-  sine1.amplitude(0.5);
-  sine1.frequency(220.0);
+  usbMIDI.read();
 
 }
 
