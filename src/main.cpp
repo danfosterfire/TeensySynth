@@ -1,59 +1,73 @@
-#include <Arduino.h>
 #include <Audio.h>
-#include <Wire.h>
-#include <SPI.h>
-#include <SD.h>
-#include <SerialFlash.h>
+#include "Synth.h"
+#include "USBHost_t36.h"
 
-#include <Audio.h>
-#include <Wire.h>
-#include <SPI.h>
-#include <SD.h>
-#include <SerialFlash.h>
+// Set up USB host midi interface
+USBHost myUSBHost;
+MIDIDevice slaveMidiDevice(myUSBHost);
 
+Synth *synth = new Synth();
 
+AudioOutputI2S           i2s1;           
+AudioConnection          patchCord1(*synth->getOutput(), 0, i2s1, 0);
+AudioConnection          patchCord2(*synth->getOutput(), 0, i2s1, 1);
 
-int led_pin{13};
-
-float midiToFreq(byte note){
-  return 440.0 * powf(2.0, (float)(note-69)*0.08333333);
-}
-
-void myNoteOn(byte channel, byte note, byte velocity){
-  // AudioNoInterrupts();
-  sine1.frequency(midiToFreq(note));
-  sine1.amplitude(1.0);
-  // AudioInterrupts();
-  digitalWrite(led_pin, HIGH);
-}
-
-void myNoteOff(byte channel, byte note, byte velocity){
-  sine1.amplitude(0.0);
-
-  digitalWrite(led_pin, LOW);
-}
-
+AudioControlSGTL5000     sgtl5000_1;
 
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(115200);
+  Serial.begin(9600);
 
-  pinMode(led_pin, OUTPUT);
+  myUSBHost.begin();
+	slaveMidiDevice.setHandleNoteOff(onNoteOff);
+	slaveMidiDevice.setHandleNoteOn(onNoteOn);
+	slaveMidiDevice.setHandleControlChange(onMidiControlChange);
+  slaveMidiDevice.setHandlePitchChange(onPitchChange);
+  slaveMidiDevice.setHandleAfterTouchChannel(onAfterTouch);
 
-  AudioMemory(15);
+  pinMode(LED_BUILTIN, OUTPUT);
 
-  //AudioNoInterrupts();
-  amp1.gain(1.0);
-  //AudioInterrupts();
+  AudioMemory(20);
 
-  usbMIDI.setHandleNoteOn(myNoteOn);
-  usbMIDI.setHandleNoteOff(myNoteOff);
+  sgtl5000_1.enable();
+  sgtl5000_1.volume(0.5);
 
+  usbMIDI.setHandleNoteOn(onNoteOn);
+  usbMIDI.setHandleNoteOff(onNoteOff);
+  usbMIDI.setHandleControlChange(onMidiControlChange);
+  usbMIDI.setHandlePitchChange(onPitchChange);
+  usbMIDI.setHandleAfterTouch(onAfterTouch);
+
+  // Starting sequence
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
+  Serial.println("MPE Synth Ready!");
 }
 
 void loop() {
-  // put your main code here, to run repeatedly
-  usbMIDI.read();
-
+    myUSBHost.Task();
+	  slaveMidiDevice.read();
+    usbMIDI.read();
 }
 
+void onNoteOn(byte channel, byte note, byte velocity) {
+  synth->noteOn(channel, note, velocity);
+  digitalWrite(LED_BUILTIN, HIGH);
+}
+
+void onNoteOff(byte channel, byte note, byte velocity) {
+  synth->noteOff(channel, note, velocity);
+  digitalWrite(LED_BUILTIN, LOW);
+}
+
+void onMidiControlChange(byte channel, byte control, byte value){
+  synth->controlChange(channel, control, value);
+}
+
+void onPitchChange(byte channel, int pitch){
+  synth->pitchChange(channel, pitch);
+}
+
+void onAfterTouch(byte channel, byte pressure){
+  synth->afterTouch(channel, pressure);
+}
