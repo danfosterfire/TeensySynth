@@ -9,9 +9,10 @@
 #endif
 
 // Number of voices
-const byte voiceCount = 4; // max = 16
+const byte voiceCount = 8; // max = 16
 const byte voicesPerMixer = 4;
 const byte mixerCount = voiceCount/voicesPerMixer + voiceCount%voicesPerMixer > 0? 1:0;
+//const byte mixerCount = 4;
 
 /*
  * Synth
