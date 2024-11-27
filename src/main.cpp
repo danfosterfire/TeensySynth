@@ -5,14 +5,13 @@
 #include <SD.h>
 #include <SerialFlash.h>
 
-// GUItool: begin automatically generated code
-AudioSynthWaveformSine   sine1;          //xy=55,73
-AudioAmplifier           amp1;           //xy=129,155
-AudioOutputUSB           usb1;           //xy=328,195
-AudioConnection          patchCord1(sine1, amp1);
-AudioConnection          patchCord2(amp1, 0, usb1, 0);
-// GUItool: end automatically generated code
-// put function declarations here:
+#include <Audio.h>
+#include <Wire.h>
+#include <SPI.h>
+#include <SD.h>
+#include <SerialFlash.h>
+
+
 
 int led_pin{13};
 
