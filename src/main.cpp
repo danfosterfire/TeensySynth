@@ -22,10 +22,19 @@ int n_chorus_voice{3};
 AudioOutputUSB usb0;
 //AudioEffectChorus chorus0;
 //AudioEffectFreeverbStereo reverb0;
-//AudioConnection patchCord0(*synth->getOutput(), chorus0);
+//AudioConnection patchCord0(*synth->getOutput(), reverb0);
+//AudioMixer4 reverbMixR;
+//AudioConnection patchCord1(*synth->getOutput(), 0, reverbMixR, 0);
+//AudioConnection patchCord2(reverb0, 0, reverbMixR, 1);
+//AudioMixer4 reverbMixL;
+//AudioConnection patchCord3(*synth->getOutput(), 0, reverbMixL, 0);
+//AudioConnection patchCord4(reverb0, 1, reverbMixL, 1);
+
 //AudioConnection patchCord1(chorus0, reverb0);
 AudioConnection patchCord2(*synth->getOutput(), 0, usb0, 0);
-AudioConnection patchCord3(*synth->getOutput(), 0,  usb0, 1);
+AudioConnection patchCord1(*synth->getOutput(), 0, usb0, 1);
+//AudioConnection patchCord5(reverbMixR, 0,  usb0, 0);
+//AudioConnection patchCord6(reverbMixL, 0,  usb0, 1);
 
 //AudioControlSGTL5000     sgtl5000_1;
 
@@ -47,7 +56,7 @@ void onPitchChange(byte channel, int pitch){
   synth->pitchChange(channel, pitch);
 }
 
-void onAfterTouch(byte channel, byte pressure){
+void onAfterTouchPoly(byte channel, byte note, byte pressure){
   synth->afterTouch(channel, pressure);
 }
 
@@ -74,9 +83,13 @@ void setup() {
   usbMIDI.setHandleNoteOff(onNoteOff);
   usbMIDI.setHandleControlChange(onMidiControlChange);
   usbMIDI.setHandlePitchChange(onPitchChange);
-  usbMIDI.setHandleAfterTouch(onAfterTouch);
+  usbMIDI.setHandleAfterTouchPoly(onAfterTouchPoly);
 
   //chorus0.begin(delayline, CHORUS_DELAY_LENGTH, n_chorus_voice);
+  //reverbMixR.gain(0, 0.7);
+  //reverbMixR.gain(1, 0.3);
+  //reverbMixL.gain(0, 0.7);
+  //reverbMixL.gain(1, 0.3);
 
   // Starting sequence
   digitalWrite(LED_BUILTIN, HIGH);

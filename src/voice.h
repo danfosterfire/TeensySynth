@@ -43,8 +43,9 @@ class Voice{
     byte currentNote;
     byte channel;  // for MPE
     unsigned long last_played;
-    uint8_t filter_touch_octs{4};
+    uint8_t filter_touch_octs{2};
     uint8_t timbre_scale{2};
+    //float prev_pressure{0.0};
     
     AudioMixer4 * getOutput();
     void noteOn(byte channel, byte note, byte velocity);
@@ -80,21 +81,21 @@ inline Voice::Voice(){
     this->osc3->amplitude(0.5);
 
     this->filter = new AudioFilterStateVariable();
-    this->filter->frequency(1600.0);
+    this->filter->frequency(440.0);
     //this->filter->octaveControl(3);
     //this->filter->resonance(0.33);
     //this->filter->inputDrive(1.0);
     //this->filter->passbandGain(0);
 
     this->filterIn = new AudioMixer4();
-    this->filterIn->gain(0, 0.5);
-    this->filterIn->gain(1, 0.5);
+    this->filterIn->gain(0, 0.4);
+    this->filterIn->gain(1, 0.4);
     this->filterIn->gain(2, 0.25);
     this->filterIn->gain(3, 0.25);
 
     this->output = new AudioMixer4();
     this->output->gain(0, 0.2);
-    this->output->gain(1, 0.8);
+    this->output->gain(1, 0.6);
 
     this->ampTouch = new AudioAmplifier();
     this->ampTouch->gain(0.0);
@@ -134,7 +135,7 @@ inline Voice::Voice(){
     this->patchCord8 = new AudioConnection(*this->filter, 0, *this->ampEnv, 0);
     this->patchCord9 = new AudioConnection(*this->ampEnv, 0, *this->ampEnv0, 0);
     this->patchCord10 = new AudioConnection(*this->ampEnv0, 0, *this->output, 0);
-    this->patchCord11 = new AudioConnection(*this->ampTouch, 0, *this->output, 0);
+    this->patchCord11 = new AudioConnection(*this->ampTouch, 0, *this->output, 1);
 
     this->notePlayed = false;
 }
@@ -178,6 +179,7 @@ inline void Voice::noteOff(byte channel, byte note, byte velocity) {
 
     // patch specific
     this->ampTouch->gain(0.0);
+    this->filter->frequency(440.0);
     //this->osc2->amplitude(0);
     //this->osc3->amplitude(0);
 }
@@ -191,7 +193,7 @@ inline void Voice::controlChange(byte channel, byte control, byte value) {
     if (control == 0x4A){
         //Serial.print("CC74: ");
         //Serial.print(value);
-        this->osc0->frequency(0.1*powf(2.0, this->timbre_scale*float(value)*0.00787402));
+        this->osc0->frequency(0.1*powf(2.0, float(this->timbre_scale)*float(value)*0.00787402));
     }
 
 }
@@ -210,9 +212,12 @@ inline void Voice::pitchChange(byte channel, int pitch){
  * Aftertouch
  */
 inline void Voice::afterTouch(byte channel, byte pressure){
-  float pressure_val = float(pressure)*0.00787402;
-  this->filter->frequency(1600.0 * powf(2.0, this->filter_touch_octs*pressure_val));
-  this->ampTouch->gain(pressure_val);
+
+    float pressure_val = float(pressure)*0.00787402;
+    //float pressure_val = (prev_pressure+current_pressure)*0.5;
+    this->filter->frequency(440.0 * powf(2.0, float(this->filter_touch_octs)*pressure_val));
+    this->ampTouch->gain(pressure_val*0.9);
+    //this->prev_pressure = current_pressure;
 }
 
 /**
