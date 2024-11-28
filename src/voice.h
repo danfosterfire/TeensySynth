@@ -43,7 +43,7 @@ class Voice{
     byte currentNote;
     byte channel;  // for MPE
     unsigned long last_played;
-    uint8_t filter_touch_octs{2};
+    uint8_t filter_touch_octs{4};
     uint8_t timbre_scale{2};
     //float prev_pressure{0.0};
     
@@ -73,15 +73,15 @@ inline Voice::Voice(){
 
     this->osc2 = new AudioSynthWaveformModulated();
     //this->osc2->begin(WAVEFORM_BANDLIMIT_SAWTOOTH);
-    this->osc2->begin(WAVEFORM_SINE);
+    this->osc2->begin(WAVEFORM_BANDLIMIT_SAWTOOTH);
     this->osc2->amplitude(0.5);
 
     this->osc3 = new AudioSynthWaveformModulated();
-    this->osc3->begin(WAVEFORM_SINE);
+    this->osc3->begin(WAVEFORM_BANDLIMIT_SQUARE);
     this->osc3->amplitude(0.5);
 
     this->filter = new AudioFilterStateVariable();
-    this->filter->frequency(440.0);
+    this->filter->frequency(220.0);
     //this->filter->octaveControl(3);
     //this->filter->resonance(0.33);
     //this->filter->inputDrive(1.0);
@@ -89,7 +89,7 @@ inline Voice::Voice(){
 
     this->filterIn = new AudioMixer4();
     this->filterIn->gain(0, 0.4);
-    this->filterIn->gain(1, 0.4);
+    this->filterIn->gain(1, 0.2);
     this->filterIn->gain(2, 0.25);
     this->filterIn->gain(3, 0.25);
 
@@ -125,7 +125,7 @@ inline Voice::Voice(){
     this->osc2->frequency(440.0);
 
     this->patchCord2 = new AudioConnection(*this->osc1, 0, *this->osc3, 0);
-    this->osc3->frequencyModulation(one_cent);
+    this->osc3->frequencyModulation(one_cent*0.75);
     this->osc3->frequency(440.0);
 
     this->patchCord4 = new AudioConnection(*this->osc2, 0, *this->filterIn, 0);
@@ -179,7 +179,7 @@ inline void Voice::noteOff(byte channel, byte note, byte velocity) {
 
     // patch specific
     this->ampTouch->gain(0.0);
-    this->filter->frequency(440.0);
+    this->filter->frequency(220.0);
     //this->osc2->amplitude(0);
     //this->osc3->amplitude(0);
 }
@@ -215,7 +215,14 @@ inline void Voice::afterTouch(byte channel, byte pressure){
 
     float pressure_val = float(pressure)*0.00787402;
     //float pressure_val = (prev_pressure+current_pressure)*0.5;
-    this->filter->frequency(440.0 * powf(2.0, float(this->filter_touch_octs)*pressure_val));
+    float freq = 220.0 * powf(2.0, float(this->filter_touch_octs)*pressure_val);
+    //Serial.print("Channel: ");
+    //Serial.println(channel);
+    //Serial.print("Pressure: ");
+    //Serial.println(pressure);
+    //Serial.print("Freq: ");
+    //Serial.println(freq);
+    this->filter->frequency(freq);
     this->ampTouch->gain(pressure_val*0.9);
     //this->prev_pressure = current_pressure;
 }

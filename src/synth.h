@@ -133,6 +133,7 @@ void Synth::pitchChange(byte channel, int pitch){
 }
 
 void Synth::afterTouch(byte channel, byte pressure){
+    //Serial.print("Received aftertouch");
   for (int i = 0; i < voiceCount ; i++) {
     if(this->voices[i]->channel == channel && this->voices[i]->isActive()){
       this->voices[i]->afterTouch(channel, pressure);

@@ -56,7 +56,13 @@ void onPitchChange(byte channel, int pitch){
   synth->pitchChange(channel, pitch);
 }
 
+void onAfterTouch(byte channel, byte pressure){
+  //Serial.println("Received Aftertouch Channel");
+  synth->afterTouch(channel, pressure);
+}
+
 void onAfterTouchPoly(byte channel, byte note, byte pressure){
+  //Serial.println("Received aftertouch Poly");
   synth->afterTouch(channel, pressure);
 }
 
@@ -83,7 +89,9 @@ void setup() {
   usbMIDI.setHandleNoteOff(onNoteOff);
   usbMIDI.setHandleControlChange(onMidiControlChange);
   usbMIDI.setHandlePitchChange(onPitchChange);
+  usbMIDI.setHandleAfterTouch(onAfterTouch);
   usbMIDI.setHandleAfterTouchPoly(onAfterTouchPoly);
+  // hmmm... bug here? https://github.com/PaulStoffregen/cores/blob/058d2808187a24e7db53803b7510e26827064c03/teensy4/usb_midi.h#L321
 
   //chorus0.begin(delayline, CHORUS_DELAY_LENGTH, n_chorus_voice);
   //reverbMixR.gain(0, 0.7);
