@@ -20,12 +20,12 @@ int n_chorus_voice{3};
 
 //AudioOutputI2S           i2s1;           
 AudioOutputUSB usb0;
-AudioEffectChorus chorus0;
-AudioEffectFreeverbStereo reverb0;
-AudioConnection patchCord0(*synth->getOutput(), chorus0);
-AudioConnection patchCord1(chorus0, reverb0);
-AudioConnection patchCord2(reverb0, 0, usb0, 0);
-AudioConnection patchCord3(reverb0, 1, usb0, 1);
+//AudioEffectChorus chorus0;
+//AudioEffectFreeverbStereo reverb0;
+//AudioConnection patchCord0(*synth->getOutput(), chorus0);
+//AudioConnection patchCord1(chorus0, reverb0);
+AudioConnection patchCord2(*synth->getOutput(), 0, usb0, 0);
+AudioConnection patchCord3(*synth->getOutput(), 0,  usb0, 1);
 
 //AudioControlSGTL5000     sgtl5000_1;
 
@@ -76,7 +76,7 @@ void setup() {
   usbMIDI.setHandlePitchChange(onPitchChange);
   usbMIDI.setHandleAfterTouch(onAfterTouch);
 
-  chorus0.begin(delayline, CHORUS_DELAY_LENGTH, n_chorus_voice);
+  //chorus0.begin(delayline, CHORUS_DELAY_LENGTH, n_chorus_voice);
 
   // Starting sequence
   digitalWrite(LED_BUILTIN, HIGH);

@@ -44,17 +44,17 @@ class Synth{
  */
 inline Synth::Synth(){
   this->output = new AudioMixer4();
-  this->output->gain(0, 1 );
-  this->output->gain(1, 1 );
-  this->output->gain(2, 1 );
-  this->output->gain(3, 1 );
+  this->output->gain(0, 0.25*float(mixerCount));
+  this->output->gain(1, 0.25*float(mixerCount));
+  this->output->gain(2, 0.25*float(mixerCount));
+  this->output->gain(3, 0.25*float(mixerCount));
 
   for (int i = 0; i < mixerCount; i++) {
     this->mixers[i] = new AudioMixer4();
-    this->mixers[i]->gain(0, 0.6 );
-    this->mixers[i]->gain(1, 0.6 );
-    this->mixers[i]->gain(2, 0.6 );
-    this->mixers[i]->gain(3, 0.6 );
+    this->mixers[i]->gain(0, 0.25*float(voicesPerMixer));
+    this->mixers[i]->gain(1, 0.25*float(voicesPerMixer));
+    this->mixers[i]->gain(2, 0.25*float(voicesPerMixer));
+    this->mixers[i]->gain(3, 0.25*float(voicesPerMixer));
     
     this->patchCords[i] = new AudioConnection(*this->mixers[i], 0, *this->output, i%voicesPerMixer);
   }
