@@ -2,6 +2,7 @@
 #include "Synth.h"
 #include <Arduino.h>
 #include <Wire.h>
+#include "effect_platereverb_F32.h"
 
 //#include "USBHost_t36.h"
 
