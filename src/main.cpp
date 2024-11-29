@@ -21,20 +21,22 @@ int n_chorus_voice{3};
 //AudioOutputI2S           i2s1;           
 AudioOutputUSB usb0;
 //AudioEffectChorus chorus0;
-//AudioEffectFreeverbStereo reverb0;
-//AudioConnection patchCord0(*synth->getOutput(), reverb0);
-//AudioMixer4 reverbMixR;
-//AudioConnection patchCord1(*synth->getOutput(), 0, reverbMixR, 0);
-//AudioConnection patchCord2(reverb0, 0, reverbMixR, 1);
-//AudioMixer4 reverbMixL;
-//AudioConnection patchCord3(*synth->getOutput(), 0, reverbMixL, 0);
-//AudioConnection patchCord4(reverb0, 1, reverbMixL, 1);
+AudioEffectFreeverbStereo reverb0;
+AudioAmplifier reverbSend;
+AudioConnection patchCord0(*synth->getOutput(), reverbSend);
+AudioConnection patchCord1(reverbSend, 0, reverb0, 0);
+AudioMixer4 reverbMixR;
+AudioConnection patchCord2(*synth->getOutput(), 0, reverbMixR, 0);
+AudioConnection patchCord3(reverb0, 0, reverbMixR, 1);
+AudioMixer4 reverbMixL;
+AudioConnection patchCord4(*synth->getOutput(), 0, reverbMixL, 0);
+AudioConnection patchCord5(reverb0, 1, reverbMixL, 1);
 
 //AudioConnection patchCord1(chorus0, reverb0);
-AudioConnection patchCord2(*synth->getOutput(), 0, usb0, 0);
-AudioConnection patchCord1(*synth->getOutput(), 0, usb0, 1);
-//AudioConnection patchCord5(reverbMixR, 0,  usb0, 0);
-//AudioConnection patchCord6(reverbMixL, 0,  usb0, 1);
+//AudioConnection patchCord2(*synth->getOutput(), 0, usb0, 0);
+//AudioConnection patchCord1(*synth->getOutput(), 0, usb0, 1);
+AudioConnection patchCord6(reverbMixR, 0,  usb0, 0);
+AudioConnection patchCord7(reverbMixL, 0,  usb0, 1);
 
 //AudioControlSGTL5000     sgtl5000_1;
 
@@ -94,10 +96,15 @@ void setup() {
   // hmmm... bug here? https://github.com/PaulStoffregen/cores/blob/058d2808187a24e7db53803b7510e26827064c03/teensy4/usb_midi.h#L321
 
   //chorus0.begin(delayline, CHORUS_DELAY_LENGTH, n_chorus_voice);
-  //reverbMixR.gain(0, 0.7);
-  //reverbMixR.gain(1, 0.3);
-  //reverbMixL.gain(0, 0.7);
-  //reverbMixL.gain(1, 0.3);
+  reverbMixR.gain(0, 0.7);
+  reverbMixR.gain(1, 0.3);
+  reverbMixL.gain(0, 0.7);
+  reverbMixL.gain(1, 0.3);
+
+  reverbSend.gain(0.3);
+
+  reverb0.roomsize(0.5);
+  reverb0.damping(0.5);
 
   // Starting sequence
   digitalWrite(LED_BUILTIN, HIGH);
