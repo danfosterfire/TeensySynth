@@ -74,11 +74,11 @@ inline Voice::Voice(){
     this->osc2 = new AudioSynthWaveformModulated();
     //this->osc2->begin(WAVEFORM_BANDLIMIT_SAWTOOTH);
     this->osc2->begin(WAVEFORM_BANDLIMIT_SAWTOOTH);
-    this->osc2->amplitude(0.5);
+    this->osc2->amplitude(1.0);
 
     this->osc3 = new AudioSynthWaveformModulated();
     this->osc3->begin(WAVEFORM_BANDLIMIT_SQUARE);
-    this->osc3->amplitude(0.5);
+    this->osc3->amplitude(1.0);
 
     this->filter = new AudioFilterStateVariable();
     this->filter->frequency(220.0);
@@ -88,14 +88,14 @@ inline Voice::Voice(){
     //this->filter->passbandGain(0);
 
     this->filterIn = new AudioMixer4();
-    this->filterIn->gain(0, 0.4);
-    this->filterIn->gain(1, 0.2);
+    this->filterIn->gain(0, 0.6);
+    this->filterIn->gain(1, 0.4);
     this->filterIn->gain(2, 0.25);
     this->filterIn->gain(3, 0.25);
 
     this->output = new AudioMixer4();
-    this->output->gain(0, 0.2);
-    this->output->gain(1, 0.6);
+    this->output->gain(0, 0.3);
+    this->output->gain(1, 0.7);
 
     this->ampTouch = new AudioAmplifier();
     this->ampTouch->gain(0.0);
@@ -223,7 +223,7 @@ inline void Voice::afterTouch(byte channel, byte pressure){
     //Serial.print("Freq: ");
     //Serial.println(freq);
     this->filter->frequency(freq);
-    this->ampTouch->gain(pressure_val*0.9);
+    this->ampTouch->gain(pressure_val*0.95);
     //this->prev_pressure = current_pressure;
 }
 
