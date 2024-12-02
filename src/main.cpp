@@ -12,42 +12,22 @@
 
 Synth *synth = new Synth();
 
-// number of samples in each delay line
-#define CHORUS_DELAY_LENGTH (16*AUDIO_BLOCK_SAMPLES)
-// allocate delay line for mono channel
-short delayline[CHORUS_DELAY_LENGTH];
-
-int n_chorus_voice{3};
-
 AudioOutputI2S           i2s1;           
 AudioOutputUSB usb0;
-//AudioEffectChorus chorus0;
 
-// Reverb path
+// **** CHANGES 1/2 ************************************************************
 
-AudioEffectPlateReverb_i16 reverb0;
-AudioAmplifier reverbSend;
-AudioConnection patchCord0(*synth->getOutput(), reverbSend);
-AudioConnection patchCord1(reverbSend, 0, reverb0, 0);
-AudioConnection patchCord2(reverbSend, 0, reverb0, 1);
-AudioMixer4 reverbMixR;
-AudioConnection patchCord3(*synth->getOutput(), 0, reverbMixR, 0);
-AudioConnection patchCord4(reverb0, 0, reverbMixR, 1);
-AudioMixer4 reverbMixL;
-AudioConnection patchCord5(*synth->getOutput(), 0, reverbMixL, 0);
-AudioConnection patchCord6(reverb0, 1, reverbMixL, 1);
-AudioConnection patchCord7(reverbMixR, 0,  usb0, 0);
-AudioConnection patchCord8(reverbMixL, 0,  usb0, 1); 
-//AudioConnection patchCord1(chorus0, reverb0);
+// Option A (works if *synth->reverb is AudioAmplifier or AudioEffectPlateReverb,
+// fails if *synth->reverb is AudioEffectPlateReverb_i16)
+AudioConnection patchCordOutL(*synth->getOutputL(), 0, usb0, 0);
+AudioConnection patchCordOutR(*synth->getOutputR(), 0, usb0, 1);
 
-
-// dry path
-/*
-AudioConnection patchCord9(*synth->getOutput(), 0, usb0, 0);
-AudioConnection patchCord10(*synth->getOutput(), 0, usb0, 1);
-AudioConnection patchCord11(*synth->getOutput(), 0, i2s1, 0);
-AudioConnection patchCord12(*synth->getOutput(), 0, i2s1, 1);
-*/
+// Option B (works; tested with *synth->reverb is AudioAmplifier)
+//AudioEffectPlateReverb_i16 reverb;
+//AudioConnection patchCordReverbL(*synth->getOutputL(), 0, reverb, 0);
+//AudioConnection patchCordReverbR(*synth->getOutputR(), 0, reverb, 1);
+//AudioConnection patchCordOutL(reverb, 0, usb0, 0);
+//AudioConnection patchCordOutR(reverb, 0, usb0, 1);
 
 //AudioControlSGTL5000     sgtl5000_1;
 
@@ -79,6 +59,7 @@ void onAfterTouchPoly(byte channel, byte note, byte pressure){
   synth->afterTouch(channel, pressure);
 }
 
+
 int next_check{millis()+5000};
 
 void setup() {
@@ -104,26 +85,25 @@ void setup() {
   usbMIDI.setHandlePitchChange(onPitchChange);
   usbMIDI.setHandleAfterTouch(onAfterTouch);
   usbMIDI.setHandleAfterTouchPoly(onAfterTouchPoly);
-  // hmmm... bug here? https://github.com/PaulStoffregen/cores/blob/058d2808187a24e7db53803b7510e26827064c03/teensy4/usb_midi.h#L321
-
   
-  //chorus0.begin(delayline, CHORUS_DELAY_LENGTH, n_chorus_voice);
-  reverbMixR.gain(0, 0.5);
-  reverbMixR.gain(1, 0.5);
-  reverbMixL.gain(0, 0.5);
-  reverbMixL.gain(1, 0.5);
 
-  reverbSend.gain(1.0);
+  // **** Changes 2/2 **********************************************************
 
+  // Option A (nothing)
 
-  reverb0.size(1.0);     // max reverb length
-  reverb0.lowpass(0.3);  // sets the reverb master lowpass filter
-  reverb0.lodamp(0.1);   // amount of low end loss in the reverb tail
-  reverb0.hidamp(0.2);   // amount of treble loss in the reverb tail
-  reverb0.diffusion(1.0);  // 1.0 is the detault setting, lower it to create more "echoey" reverb
-  reverb0.wet_level(1.0f);
-  reverb0.bypass_set(false);    
-  
+  // Option B (Works) 
+  /*
+  reverb.size(1.0);     // max reverb length
+  reverb.lowpass(0.3);  // sets the reverb master lowpass filter
+  reverb.lodamp(0.1);   // amount of low end loss in the reverb tail
+  reverb.hidamp(0.2);   // amount of treble loss in the reverb tail
+  reverb.diffusion(1.0);  // 1.0 is the detault setting, lower it to create more "echoey" reverb
+  reverb.wet_level(1.0f);
+  reverb.bypass_set(false);
+  */
+
+  // **** END CHANGES 2/2 ******************************************************
+
   // Starting sequence
   digitalWrite(LED_BUILTIN, HIGH);
   delay(1000);
