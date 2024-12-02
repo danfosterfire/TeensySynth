@@ -17,8 +17,8 @@
 const byte voiceCount = 4; // max = 16
 const byte voicesPerMixer = 4;
 const byte mixerCount = voiceCount/voicesPerMixer + voiceCount%voicesPerMixer > 0? 1:0;
-const uint16_t maxDelayBlocks{100};
-const uint16_t delayTimeMS = maxDelayBlocks*3;
+//const uint16_t maxDelayBlocks{100};
+//const uint16_t delayTimeMS = maxDelayBlocks*3;
 //const byte mixerCount = 4;
 
 /*
@@ -31,13 +31,15 @@ class Synth{
     AudioMixer4 *mixersVoices0[mixerCount];
     AudioMixer4 *mixerSynOut;
 
-    AudioMixer4 *delaySendL;
-    AudioMixer4 *delaySendR;
+    //AudioMixer4 *delaySendL;
+    //AudioMixer4 *delaySendR;
+    AudioMixer4 *delaySend;
 
-    AudioEffectDelay *delayL;
-    AudioEffectDelay *delayR;
+    //AudioEffectDelay *delayL;
+    //AudioEffectDelay *delayR;
     //AudioAmplifier *delayL;
     //AudioAmplifier *delayR;
+    AudioEffectDelayStereo_i16 *delay;
 
     AudioMixer4 *reverbSendL;
     AudioMixer4 *reverbSendR;
@@ -59,12 +61,14 @@ class Synth{
 
     AudioConnection* patchCordsVoices[mixerCount + voiceCount]; 
     
-    AudioConnection *patchCordDelaySendDirectL;
-    AudioConnection *patchCordDelaySendDirectR;
-    AudioConnection *patchCordDelaySendFdbkL;
-    AudioConnection *patchCordDelaySendFdbkR;
-    AudioConnection *patchCordDelayL;
-    AudioConnection *patchCordDelayR;
+    AudioConnection *patchCordDelaySendDirect;
+    //AudioConnection *patchCordDelaySendDirectL;
+    //AudioConnection *patchCordDelaySendDirectR;
+    //AudioConnection *patchCordDelaySendFdbkL;
+    //AudioConnection *patchCordDelaySendFdbkR;
+    //AudioConnection *patchCordDelayL;
+    //AudioConnection *patchCordDelayR;
+    AudioConnection *patchCordDelay;
     AudioConnection *patchCordReverbSendDelayL;
     AudioConnection *patchCordReverbSendDelayR;
     AudioConnection *patchCordReverbSendDirectL;
@@ -126,18 +130,21 @@ inline Synth::Synth(){
   }
 
   // EFX chain   
-  this->delaySendL = new AudioMixer4();
-  this->delaySendR = new AudioMixer4();
+  //this->delaySendL = new AudioMixer4();
+  //this->delaySendR = new AudioMixer4();
+  this->delaySend = new AudioMixer4();
 
-  this->delaySendL->gain(0, 1.0); // direct in
-  this->delaySendR->gain(0, 1.0);
-  this->delaySendL->gain(1, 0.1); // feedback
-  this->delaySendR->gain(1, 0.1);
+  //this->delaySendL->gain(0, 1.0); // direct in
+  //this->delaySendR->gain(0, 1.0);
+  //this->delaySendL->gain(1, 0.1); // feedback
+  //this->delaySendR->gain(1, 0.1);
+  this->delaySend->gain(0, 1.0); // direct in
 
-  this->delayL = new AudioEffectDelay();
-  this->delayR = new AudioEffectDelay();
+  //this->delayL = new AudioEffectDelay();
+  //this->delayR = new AudioEffectDelay();
   //this->delayL = new AudioAmplifier();
   //this->delayR = new AudioAmplifier();
+  this->delay = new AudioEffectDelayStereo_i16(1000UL, true);
 
   this->reverbSendL = new AudioMixer4();
   this->reverbSendR = new AudioMixer4();
@@ -176,19 +183,24 @@ inline Synth::Synth(){
   this->efxReturnsR->gain(2, 0.3);
 
   
-  this->patchCordDelaySendDirectL = 
-    new AudioConnection(*this->mixerSynOut, 0, *this->delaySendL, 0);
-  this->patchCordDelaySendDirectR = 
-    new AudioConnection(*this->mixerSynOut, 0, *this->delaySendR, 0);
-  this->patchCordDelaySendFdbkL = 
-    new AudioConnection(*this->delayL, 0, *this->delaySendL, 1);
-  this->patchCordDelaySendFdbkR = 
-    new AudioConnection(*this->delayR, 0, *this->delaySendR, 1);
-  
-  this->patchCordDelayL = 
-    new AudioConnection(*this->delaySendL, 0, *this->delayL, 0);
-  this->patchCordDelayR = 
-    new AudioConnection(*this->delaySendR, 0, *this->delayR, 0);
+  //this->patchCordDelaySendDirectL = 
+  //  new AudioConnection(*this->mixerSynOut, 0, *this->delaySendL, 0);
+  //this->patchCordDelaySendDirectR = 
+  //  new AudioConnection(*this->mixerSynOut, 0, *this->delaySendR, 0);
+  //this->patchCordDelaySendFdbkL = 
+  //  new AudioConnection(*this->delayL, 0, *this->delaySendL, 1);
+  //this->patchCordDelaySendFdbkR = 
+  //  new AudioConnection(*this->delayR, 0, *this->delaySendR, 1);
+  this->patchCordDelaySendDirect = 
+    new AudioConnection(*this->mixerSynOut, 0, *this->delaySend, 0);
+
+
+  //this->patchCordDelayL = 
+  //  new AudioConnection(*this->delaySendL, 0, *this->delayL, 0);
+  //this->patchCordDelayR = 
+  //  new AudioConnection(*this->delaySendR, 0, *this->delayR, 0);
+  this->patchCordDelay = 
+    new AudioConnection(*this->delaySend, 0, *this->delay, 0);
   
   this->patchCordReverbSendDirectL = 
     new AudioConnection(*this->mixerSynOut, 0, *this->reverbSendL, 0);
@@ -196,9 +208,9 @@ inline Synth::Synth(){
     new AudioConnection(*this->mixerSynOut, 0, *this->reverbSendR, 0);
   
   this->patchCordReverbSendDelayL = 
-    new AudioConnection(*this->delayL, 0, *this->reverbSendL, 0);
+    new AudioConnection(*this->delay, 0, *this->reverbSendL, 0);
   this->patchCordReverbSendDelayR = 
-    new AudioConnection(*this->delayR, 0, *this->reverbSendR, 0);
+    new AudioConnection(*this->delay, 1, *this->reverbSendR, 0);
   
   this->patchCordReverbL = 
     new AudioConnection(*this->reverbSendL, 0, *this->reverb, 0);
@@ -217,14 +229,14 @@ inline Synth::Synth(){
   this->patchCordDirectRetL = 
     new AudioConnection(*this->mixerSynOut, 0, *this->efxReturnsL, 0);
   this->patchCordDelayRetL = 
-    new AudioConnection(*this->delayL, 0, *this->efxReturnsL, 1);
+    new AudioConnection(*this->delay, 0, *this->efxReturnsL, 1);
   this->patchCordReverbRetL = 
     new AudioConnection(*this->reverb, 0, *this->efxReturnsL, 2);
 
   this->patchCordDirectRetR = 
     new AudioConnection(*this->mixerSynOut, 0, *this->efxReturnsR, 0);
   this->patchCordDelayRetR = 
-    new AudioConnection(*this->delayR, 0, *this->efxReturnsR, 1);
+    new AudioConnection(*this->delay, 1, *this->efxReturnsR, 1);
   this->patchCordReverbRetR = 
     new AudioConnection(*this->reverb, 1, *this->efxReturnsR, 2);
 
@@ -239,7 +251,10 @@ inline Synth::Synth(){
   //  new AudioConnection(*this->mixerSynOut, 0, *this->outputR, 0);
 
   // Configure Delay
-  
+  this->delay->mix(1.0);
+  this->delay->bypass_set(false);
+  this->delay->time(1.0);
+  /*
   this->delayL->delay(0, delayTimeMS);
   this->delayR->delay(0, delayTimeMS);
   this->delayL->disable(1);
@@ -256,7 +271,7 @@ inline Synth::Synth(){
   this->delayR->disable(6);
   this->delayL->disable(7);
   this->delayR->disable(7);
-  
+  */
   // Configure Reverb
 
   // **** CHANGES 5/5 **********************************************************

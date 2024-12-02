@@ -75,7 +75,7 @@ void setup() {
 
   //pinMode(LED_BUILTIN, OUTPUT);
 
-  AudioMemory(270);
+  AudioMemory(225);
 
   //sgtl5000_1.enable();
   //sgtl5000_1.volume(0.5);
