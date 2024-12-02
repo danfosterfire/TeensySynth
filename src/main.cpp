@@ -63,6 +63,7 @@ void onAfterTouchPoly(byte channel, byte note, byte pressure){
 int next_check{millis()+5000};
 
 void setup() {
+
   Serial.begin(115200);
 
   //myUSBHost.begin();
@@ -74,7 +75,7 @@ void setup() {
 
   //pinMode(LED_BUILTIN, OUTPUT);
 
-  AudioMemory(120);
+  AudioMemory(270);
 
   //sgtl5000_1.enable();
   //sgtl5000_1.volume(0.5);
@@ -123,7 +124,12 @@ void loop() {
       Serial.print("%, Total CPU Usage: ");
       Serial.print(AudioProcessorUsageMax());
       Serial.println("%");
+
+      Serial.print("Total memory Usage: ");
+      Serial.print(AudioMemoryUsageMax());
+      Serial.println("");
       AudioProcessorUsageMaxReset();
+      AudioMemoryUsageMaxReset();
       next_check = now + 5000;
     }
 
