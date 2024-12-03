@@ -16,7 +16,7 @@
 // Number of voices
 const byte voiceCount = 4; // max = 16
 const byte voicesPerMixer = 4;
-const byte mixerCount = voiceCount/voicesPerMixer + voiceCount%voicesPerMixer > 0? 1:0;
+const byte mixerCount = voiceCount/voicesPerMixer + (voiceCount%voicesPerMixer > 0? 1:0);
 //const uint16_t maxDelayBlocks{100};
 //const uint16_t delayTimeMS = maxDelayBlocks*3;
 //const byte mixerCount = 4;
@@ -39,6 +39,7 @@ class Synth{
     //AudioEffectDelay *delayR;
     //AudioAmplifier *delayL;
     //AudioAmplifier *delayR;
+    //AudioAmplifier *delay;
     AudioEffectDelayStereo_i16 *delay;
 
     AudioMixer4 *reverbSendL;
@@ -106,6 +107,9 @@ class Synth{
 
 // create and mix synth voices
 inline Synth::Synth(){
+
+  CrashReport.breadcrumb(1, 111111);
+
   this->mixerSynOut = new AudioMixer4();
   this->mixerSynOut->gain(0, 1.0/float(mixerCount));
   this->mixerSynOut->gain(1, 1.0/float(mixerCount));
@@ -129,6 +133,7 @@ inline Synth::Synth(){
       new AudioConnection(*this->voices[i]->getOutput(), 0, *this->mixersVoices0[i/voicesPerMixer], i%voicesPerMixer);
   }
 
+  CrashReport.breadcrumb(1, 222222);
   // EFX chain   
   //this->delaySendL = new AudioMixer4();
   //this->delaySendR = new AudioMixer4();
@@ -144,7 +149,11 @@ inline Synth::Synth(){
   //this->delayR = new AudioEffectDelay();
   //this->delayL = new AudioAmplifier();
   //this->delayR = new AudioAmplifier();
+  CrashReport.breadcrumb(1, 252525);
   this->delay = new AudioEffectDelayStereo_i16(1000UL, true);
+  //this->delay = new AudioAmplifier();
+
+  CrashReport.breadcrumb(1, 333333);
 
   this->reverbSendL = new AudioMixer4();
   this->reverbSendR = new AudioMixer4();
@@ -153,7 +162,7 @@ inline Synth::Synth(){
   this->reverbSendL->gain(1, 0.5); // delay in
   this->reverbSendR->gain(0, 0.5);
   this->reverbSendR->gain(1, 0.5);
-  
+  CrashReport.breadcrumb(1, 333334);
   // ***** CHANGES 3/5  ********************************************************
   //this->reverb = new AudioAmplifier(); //  WORKS
   //this->reverb = new AudioEffectPlateReverb(); // WORKS
@@ -161,6 +170,8 @@ inline Synth::Synth(){
   this->reverb = new AudioEffectPlateReverb_i16(); // errno6
   //this->reverb = new AudioEffectReverb();
   // ***** END 3/5 *************************************************************
+
+  CrashReport.breadcrumb(1, 444444);
 
   this->outputL = 
     new AudioAmplifier();
@@ -182,7 +193,7 @@ inline Synth::Synth(){
   this->efxReturnsR->gain(1, 0.5);
   this->efxReturnsR->gain(2, 0.3);
 
-  
+  CrashReport.breadcrumb(1, 555555);
   //this->patchCordDelaySendDirectL = 
   //  new AudioConnection(*this->mixerSynOut, 0, *this->delaySendL, 0);
   //this->patchCordDelaySendDirectR = 
@@ -212,6 +223,8 @@ inline Synth::Synth(){
   this->patchCordReverbSendDelayR = 
     new AudioConnection(*this->delay, 1, *this->reverbSendR, 0);
   
+  CrashReport.breadcrumb(1, 666666);
+
   this->patchCordReverbL = 
     new AudioConnection(*this->reverbSendL, 0, *this->reverb, 0);
 
@@ -226,6 +239,7 @@ inline Synth::Synth(){
     new AudioConnection(*this->reverbSendR, 0, *this->reverb, 1);
   // END CHANGES 4/5 ***********************************************************
 
+  CrashReport.breadcrumb(1, 777777);
   this->patchCordDirectRetL = 
     new AudioConnection(*this->mixerSynOut, 0, *this->efxReturnsL, 0);
   this->patchCordDelayRetL = 
@@ -240,7 +254,7 @@ inline Synth::Synth(){
   this->patchCordReverbRetR = 
     new AudioConnection(*this->reverb, 1, *this->efxReturnsR, 2);
 
-
+  CrashReport.breadcrumb(1, 888888);
   this->patchCordSendOutL = 
     new AudioConnection(*this->efxReturnsL, *this->outputL);
 
@@ -250,6 +264,7 @@ inline Synth::Synth(){
   //this->patchCordSendOutR = 
   //  new AudioConnection(*this->mixerSynOut, 0, *this->outputR, 0);
 
+  CrashReport.breadcrumb(1, 999999);
   // Configure Delay
   this->delay->mix(1.0);
   this->delay->bypass_set(false);
@@ -277,7 +292,7 @@ inline Synth::Synth(){
   // **** CHANGES 5/5 **********************************************************
 
   //this->reverb->gain(1.0); // use when reverb is AudioAmplifier; Works
-  
+  CrashReport.breadcrumb(1, 101010);
   // Use when reverb is AudioEffectPlateReverb, AudioEffectPlateReverb_i16, or AudioEffectSpringReverb_i16
   this->reverb->size(1.0);     // max reverb length
   this->reverb->lowpass(0.3);  // sets the reverb master lowpass filter

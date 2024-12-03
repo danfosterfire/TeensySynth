@@ -4,23 +4,23 @@
 #include <Wire.h>
 #include "effect_platereverb_i16.h"
 
+
+
 //#include "USBHost_t36.h"
 
 // Set up USB host midi interface
 //USBHost myUSBHost;
 //MIDIDevice slaveMidiDevice(myUSBHost);
 
-Synth *synth = new Synth();
+Synth *synth;
 
 AudioOutputI2S           i2s1;           
 AudioOutputUSB usb0;
+AudioConnection *patchCordOutL;
+AudioConnection *patchCordOutR;
 
 // **** CHANGES 1/2 ************************************************************
 
-// Option A (works if *synth->reverb is AudioAmplifier or AudioEffectPlateReverb,
-// fails if *synth->reverb is AudioEffectPlateReverb_i16)
-AudioConnection patchCordOutL(*synth->getOutputL(), 0, usb0, 0);
-AudioConnection patchCordOutR(*synth->getOutputR(), 0, usb0, 1);
 
 // Option B (works; tested with *synth->reverb is AudioAmplifier)
 //AudioEffectPlateReverb_i16 reverb;
@@ -30,6 +30,7 @@ AudioConnection patchCordOutR(*synth->getOutputR(), 0, usb0, 1);
 //AudioConnection patchCordOutR(reverb, 0, usb0, 1);
 
 //AudioControlSGTL5000     sgtl5000_1;
+
 
 void onNoteOn(byte channel, byte note, byte velocity) {
   synth->noteOn(channel, note, velocity);
@@ -60,9 +61,14 @@ void onAfterTouchPoly(byte channel, byte note, byte pressure){
 }
 
 
-int next_check{millis()+5000};
+int next_check;
 
 void setup() {
+
+  Serial.begin(9600);
+  Serial.print(CrashReport);
+
+
 
   Serial.begin(115200);
 
@@ -72,14 +78,20 @@ void setup() {
 	//slaveMidiDevice.setHandleControlChange(onMidiControlChange);
   //slaveMidiDevice.setHandlePitchChange(onPitchChange);
   //slaveMidiDevice.setHandleAfterTouchChannel(onAfterTouch);
-
   //pinMode(LED_BUILTIN, OUTPUT);
+  synth = new Synth();
+
+  // Option A (works if *synth->reverb is AudioAmplifier or AudioEffectPlateReverb,
+  // fails if *synth->reverb is AudioEffectPlateReverb_i16)
+  patchCordOutL = new AudioConnection(*synth->getOutputL(), 0, usb0, 0);
+  patchCordOutR = new AudioConnection(*synth->getOutputR(), 0, usb0, 1);
+
 
   AudioMemory(225);
 
   //sgtl5000_1.enable();
   //sgtl5000_1.volume(0.5);
-
+  
   usbMIDI.setHandleNoteOn(onNoteOn);
   usbMIDI.setHandleNoteOff(onNoteOff);
   usbMIDI.setHandleControlChange(onMidiControlChange);
@@ -110,12 +122,14 @@ void setup() {
   delay(1000);
   digitalWrite(LED_BUILTIN, LOW);
   Serial.println("MPE Synth Ready!");
+  next_check = millis()+5000UL;
 
 }
 
 void loop() {
     //myUSBHost.Task();
 	  //slaveMidiDevice.read();
+    
     usbMIDI.read();
 
     int now{millis()};
